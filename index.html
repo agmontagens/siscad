@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>SISCAG 2026</title>
+
+<style>
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:#0f172a;
+  color:#fff;
+}
+
+.app{
+  max-width:420px;
+  height:100vh;
+  margin:auto;
+  background:#155e75;
+  border-radius:28px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{ text-align:center; margin-bottom:16px; }
+.header h1{ font-size:32px; letter-spacing:2px; }
+.header p{ font-size:14px; opacity:.9; }
+
+.menu{
+  display:flex;
+  justify-content:space-between;
+  margin-top:16px;
+}
+.menu button{
+  flex:1;
+  margin:0 4px;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+}
+.menu button.active{ outline:2px solid #fff; }
+
+.submenu{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.submenu button{
+  flex:1;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+}
+
+.divider{
+  height:2px;
+  background:rgba(255,255,255,.5);
+  margin:12px 0;
+}
+
+.content{
+  flex:1;
+  overflow-y:auto;
+}
+
+.field{ margin-bottom:10px; }
+.field label{
+  font-size:12px;
+  display:block;
+  margin-bottom:4px;
+}
+.field input{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+}
+
+.btn-ok{
+  padding:8px 14px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  margin-top:6px;
+}
+
+.state{ display:none; }
+.state.active{ display:block; }
+
+.resumo{
+  margin-top:14px;
+  font-size:13px;
+  opacity:.95;
+}
+.resumo ul{
+  margin-top:6px;
+  padding-left:18px;
+}
+
+@media (max-width: 360px){
+  .row{
+    grid-template-columns: 1fr;
+  }
+}
+
+.row{
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+
+/* Campo data com botão */
+.date-wrapper{
+  display: flex;
+  gap: 6px;
+}
+
+.date-wrapper input{
+  flex: 1;
+}
+
+.btn-date{
+  padding: 0 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* rótulo com ação */
+.label-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.btn-date-inline{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:12px;
+  cursor:pointer;
+  opacity:.9;
+}
+
+.btn-date-inline:hover{
+  opacity:1;
+  text-decoration:underline;
+}
+
+/* Linha Nome + Grupo (mesmo tamanho) */
+.row-equal{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.resumo ol{
+  list-style: decimal;
+  padding-left: 20px;
+}
+
+.resumo li{
+  margin-bottom: 4px;
+}
+/* Linha Local + Qtd */
+.row-local-qtd{
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 10px;
+}
+
+/* Qtd mais compacta */
+.qtd-field input{
+  text-align: center;
+}
+
+/* Responsivo */
+@media (max-width: 360px){
+  .row-local-qtd{
+    grid-template-columns: 1fr;
+  }
+}
+
+.acoes-finais{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* todos os botões iguais */
+.acoes-finais button{
+  height: 52px;
+  width: 100%;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Cores */
+.btn-confirmar{
+  background:#f5f5f5;
+  color:#000;
+}
+
+.btn-alterar{
+  background:#0ea5e9;
+  color:#fff;
+}
+
+.btn-sair{
+  background:#ef4444;
+  color:#fff;
+}
+
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal.hidden{
+  display: none;
+}
+
+.modal-box{
+  background: #155e75;
+  border-radius: 16px;
+  padding: 16px;
+  width: 90%;
+  max-width: 360px;
+}
+
+.modal-box h3{
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.modal-item{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-item button{
+  margin-left: 6px;
+}
+
+.rodape-extrato{
+  border-top: 2px solid rgba(255,255,255,.4);
+  margin-top: 16px;
+  padding-top: 10px;
+  font-size: 14px;
+}
+
+.linha-resumo{
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.linha-resumo span{
+  white-space: nowrap;
+}
+
+.linha-saldo{
+  margin-top: 10px;
+  text-align: right;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.acoes-consulta{
+  display: grid;
+  grid-template-columns: 1.5fr 1fr; /* menos contraste */
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.acoes-consulta button{
+  height: 42px;                 /* mais baixo */
+  border-radius: 8px;           /* menos chamativo */
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* OK — discreto */
+.btn-ok-consulta{
+  padding: 0 18px;              /* largura depende do texto */
+  height: 42px;
+
+  min-width: 90px;              /* tamanho confortável para "OK" */
+  width: fit-content;           /* cresce conforme texto */
+
+  border-radius: 8px;
+  border: none;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  background: rgba(255,255,255,.85);
+  color: #0f172a;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    width .25s ease,
+    padding .25s ease,
+    background .2s ease;
+}
+
+/* SAIR — menos alerta */
+.btn-sair-consulta{
+  background: rgba(239,68,68,.85);
+  color: #fff;
+}
+
+/* ===== LOGIN ===== */
+#login{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.login-card{
+  width:100%;
+  max-width:420px;
+  height:100%;
+  background:#155e75;
+  border-radius:28px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.login-card h1{
+  text-align:center;
+  font-size:36px;
+  letter-spacing:2px;
+}
+
+.subtitle{
+  text-align:center;
+  font-size:14px;
+  opacity:.9;
+  margin-bottom:12px;
+}
+
+.login-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap:10px;
+  align-items:end;
+}
+
+.btn-login{
+  height:42px;
+  padding:0 16px;
+  border-radius:8px;
+  border:none;
+  background:#d946ef;
+  color:#000;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.login-divider{
+  height:2px;
+  background:rgba(255,255,255,.6);
+  margin:16px 0;
+}
+
+.login-logo{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex:1;
+}
+
+.login-logo img{
+  max-width:220px;
+  width:100%;
+}
+
+.login-footer{
+  text-align:center;
+  font-size:12px;
+  opacity:.9;
+}
+
+.login-erro{
+  color:#ffb4b4;
+  text-align:center;
+  display:none;
+  margin-top:8px;
+}
+
+/* Ajuste exclusivo do VALOR da DIÁRIA */
+.linha-valor-diaria{
+  grid-template-columns: 1.2fr auto;
+}
+
+.linha-valor-diaria input{
+  max-width: 160px;
+}
+
+.btn-logout{
+  position:absolute;
+  top:0;
+  right:0;
+
+  width:36px;
+  height:36px;
+
+  background:#ef4444;
+  color:#fff;
+
+  border:none;
+  border-radius:50%;
+
+  font-size:18px;
+  font-weight:700;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+}
+
+.btn-logout:hover{
+  filter: brightness(1.1);
+}
+
+.relatorio table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.relatorio th, .relatorio td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  text-align: left;
+}
+
+.positivo {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.negativo {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.total-geral {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: right;
+}
+/* ===== RELATÓRIO GERAL ===== */
+
+#geral .relatorio table {
+  font-size: 13px; /* reduz e padroniza */
+}
+
+#geral th {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+#geral td {
+  font-size: 13px;
+}
+
+#geral .total-geral {
+  font-size: 16px;   /* menor que antes */
+  font-weight: 700;
+  margin-top: 14px;
+}
+
+
+</style>
+</head>
+
+<body>
+
+  <div id="login">
+  <div class="login-card">
+
+    <h1>SISCAG</h1>
+    <p class="subtitle">Sistema de Cadastro Ag Montagens</p>
+
+    <div class="login-row">
+      <div class="field">
+        <label>USUÁRIO</label>
+        <input type="text" id="login_nome" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>SENHA</label>
+        <input type="password" id="login_senha">
+      </div>
+
+      <button class="btn-login" id="btnLogin" onclick="login()">OK</button>
+    </div>
+
+    <div class="login-divider"></div>
+
+      <div class="login-footer">
+      <p>SISTEMA DE CADASTRO</p>
+      <p>by AG MONTAGENS E EMPREENDIMENTOS</p>
+      <p>CNPJ: 45.515.405/0001-47</p>
+    </div>
+
+    <p id="login_erro" class="login-erro">
+      Usuário ou senha inválidos
+    </p>
+
+  </div>
+
+</div>
+
+
+<div class="app" id="app" style="display:none;">
+
+  <div class="header" style="position:relative;">
+  <h1>SISCAG</h1>
+  <p>Sistema de Cadastro Ag Montagens</p>
+
+  <button
+  onclick="sairSistema()"
+  title="Encerrar sessão"
+  class="btn-logout"
+>
+  ⎋
+</button>
+
+</div>
+
+
+  <div class="menu">
+    <button onclick="setState('cadastro_menu')" id="btnCadastro">CADASTRO</button>
+    <button onclick="setState('consulta')">CONSULTA</button>
+    <button onclick="setState('geral')">GERAL</button>
+    <button onclick="setState('mensagem')">MENSAGEM</button>
+  </div>
+
+  <!-- SUBMENU CADASTRO -->
+  <div class="submenu state" id="submenuCadastro">
+    <button onclick="setState('cadastro_diaria_feira')">DIÁRIAS</button>
+    <button onclick="setState('cadastro_vale')">VALE</button>
+    <button onclick="setState('cadastro_despesa')">DESPESA</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="content">
+
+    <div class="state" id="geral">
+
+  <div class="relatorio">
+    <table>
+      <thead>
+        <tr>
+          <th>NOME</th>
+          <th>DIÁRIA</th>
+          <th>VALE</th>
+          <th>SALDO</th>
+        </tr>
+      </thead>
+      <tbody id="geral-body"></tbody>
+    </table>
+
+    <div class="total-geral">
+      TOTAL: <span id="geral-total">R$ 0,00</span>
+    </div>
+  </div>
+
+  <div class="acoes-finais">
+    <button class="btn-sair" onclick="sairGeral()">SAIR</button>
+  </div>
+
+</div>
+
+
+    <!-- HOME -->
+    <div class="state active" id="home"></div>
+
+    <!-- CADASTRO DIÁRIA - FEIRA -->
+<div class="state" id="cadastro_diaria_feira">
+  
+  <!-- Data + Feira -->
+  <div class="row">
+    <div class="field">
+      <div class="label-row">
+        <label>Data</label>
+        <button type="button" class="btn-date-inline" onclick="setHoje()">Hoje</button>
+      </div>
+      <input
+        type="text"
+        id="data"
+        placeholder="dd/mm/aaaa"
+        inputmode="numeric"
+      >
+    </div>
+
+    <div class="field">
+      <label>Feira</label>
+      <input type="text" id="feira">
+    </div>
+  </div>
+
+  <!-- Local + Qtd -->
+  <div class="row-local-qtd">
+    <div class="field">
+      <label>Local</label>
+      <input type="text" id="local">
+    </div>
+
+    <div class="field qtd-field">
+      <label>Qtd</label>
+      <input type="number" id="qtd" min="1" max="10">
+    </div>
+  </div>
+
+  <div class="acoes-finais">
+  <button class="btn-confirmar" onclick="confirmarFeira()">OK</button>
+  <button class="btn-sair" onclick="sairDiaria()">SAIR</button>
+</div>
+
+</div>
+
+
+    <!-- CADASTRO DIÁRIA - REGISTRO -->
+<div class="state" id="cadastro_diaria_registro">
+
+  <!-- FORMULÁRIO NOME / GRUPO -->
+  <!-- NOME + GRUPO -->
+<div class="row-equal">
+  <div class="field">
+    <label>Nome</label>
+    <input type="text" id="nome">
+  </div>
+
+  <div class="field">
+    <label>Grupo</label>
+    <input type="text" id="grupo">
+  </div>
+</div>
+
+<!-- VALOR + OK (mesma linha) -->
+<div class="row-local-qtd linha-valor-diaria">
+
+  <div class="field">
+    <label>Valor (R$) <span style="opacity:.6">(opcional)</span></label>
+    <input
+      type="text"
+      id="valor_diaria"
+      placeholder="0,00"
+    >
+  </div>
+
+  <div class="field qtd-field">
+    <label>&nbsp;</label>
+    <button class="btn-ok" onclick="addRegistro()">OK</button>
+  </div>
+
+</div>
+
+  <div class="resumo" id="resumo"></div>
+
+  <div class="acoes-finais">
+  <button class="btn-confirmar" onclick="confirmarTudo(this)">CONFIRMA</button>
+  <button class="btn-alterar" onclick="abrirModalEdicao()">EDITAR</button>
+  <button class="btn-alterar" onclick="voltarParaFeira()">VOLTAR</button>
+  <button class="btn-sair" onclick="sairDiaria()">SAIR</button>
+
+</div>
+
+</div>
+
+ <!-- CADASTRO VALE -->
+<div class="state" id="cadastro_vale">
+
+  <!-- Data + Nome -->
+  <div class="row">
+    <div class="field">
+      <div class="label-row">
+        <label>Data</label>
+        <button type="button" class="btn-date-inline" onclick="setHojeVale()">Hoje</button>
+      </div>
+      <input
+        type="text"
+        id="vale_data"
+        placeholder="dd/mm/aaaa"
+        inputmode="numeric"
+        style="max-width:120px"
+      >
+    </div>
+
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="vale_nome">
+    </div>
+  </div>
+
+  <!-- Valor + Caixa -->
+  <div class="row-equal">
+    <div class="field">
+      <label>Valor (R$)</label>
+      <input type="text" id="vale_valor" placeholder="0,00">
+    </div>
+
+    <div class="field">
+      <label>Caixa</label>
+      <input type="text" id="vale_caixa">
+    </div>
+  </div>
+
+  <button class="btn-ok" onclick="addVale()">OK</button>
+
+  <div class="resumo" id="resumo_vale"></div>
+
+  <div class="acoes-finais">
+  <button class="btn-confirmar" onclick="confirmarVales(this)">CONFIRMA</button>
+  <button class="btn-alterar" onclick="abrirModalEdicaoVale()">EDITAR</button>
+  <button class="btn-sair" onclick="sairVale()">SAIR</button>
+</div>
+
+</div>
+
+<!-- CADASTRO DESPESA -->
+<div class="state" id="cadastro_despesa">
+
+  <!-- Data + Valor + Feira -->
+  <div class="row">
+    <div class="field">
+      <div class="label-row">
+        <label>Data</label>
+        <button class="btn-date-inline" onclick="setHojeDespesa()">Hoje</button>
+      </div>
+      <input type="text" id="despesa_data" placeholder="dd/mm/aaaa">
+    </div>
+
+    <div class="field">
+      <label>Valor (R$)</label>
+      <input type="text" id="despesa_valor" placeholder="0,00">
+    </div>
+
+    <div class="field">
+      <label>Feira</label>
+      <input type="text" id="despesa_feira">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Descrição</label>
+    <input type="text" id="despesa_descricao">
+  </div>
+
+  <div class="field">
+    <label>Observação</label>
+    <input type="text" id="despesa_obs">
+  </div>
+
+  <div class="acoes-finais">
+    <button class="btn-confirmar" onclick="confirmarDespesa(this)">CONFIRMAR</button>
+    <button class="btn-sair" onclick="sairDespesa()">SAIR</button>
+  </div>
+
+</div>
+
+     <!-- CONSULTA -->
+    <div class="state" id="consulta">
+
+  <!-- FILTRO -->
+  <div class="row-equal">
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="consulta_nome">
+    </div>
+
+    <div class="field">
+    <label>Tipo</label>
+     <select id="consulta_tipo" disabled>
+       <option value="">Digite o nome primeiro</option>
+    </select>
+</div>
+
+  </div>
+
+  <div class="acoes-consulta">
+  <button
+    class="btn-ok-consulta"
+    id="btnConsultaOk"
+    onclick="buscarExtrato()"
+    disabled
+  >
+    OK
+  </button>
+
+  <button
+    class="btn-sair-consulta"
+    onclick="sairConsulta()"
+  >
+    SAIR
+  </button>
+</div>
+
+  <!-- LISTAGEM -->
+  <div class="resumo" id="lista_extrato"></div>
+
+  <!-- RODAPÉ FIXO -->
+  <div class="rodape-extrato">
+    <div class="linha-resumo">
+      <span>QTD: <strong id="ext_qtd">0</strong></span>
+      <span>TOTAL: <strong id="ext_total">R$ 0,00</strong></span>
+      <span>VALE: <strong id="ext_vale">R$ 0,00</strong></span>
+    </div>
+
+    <div class="linha-saldo">
+      SALDO: <strong id="ext_saldo">R$ 0,00</strong>
+    </div>
+  </div>
+
+</div>
+
+
+    <!-- MENSAGEM -->
+    <div class="state" id="mensagem">
+      <p>Mensagens (em construção)</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const ESTADOS_SEM_MENU = [
+  'consulta',
+  'geral',
+  'cadastro_vale',
+  'cadastro_despesa',
+  'cadastro_diaria_feira',
+  'cadastro_diaria_registro'
+];
+
+  const API_URL = 'https://script.google.com/macros/s/AKfycby5CYqhtVKvkYGlB9Jqpjz4WbD_-SisqggcqWnx3QFaUl3oQomzQaRxJNVvLZAxTkW7/exec';
+
+let validacaoViaEnter = false;
+let estadoAtual = 'home';
+let modoRegistro = false;
+
+let dados = {
+  feira: '',
+  local: '',
+  qtd: '',
+  registros: []
+};
+
+  /* ===== VALES ===== */
+  let vales = [];
+
+const dataInput = document.getElementById('data');
+
+dataInput.addEventListener('input', function(e){
+  let v = e.target.value.replace(/\D/g, ''); // só números
+
+  if(v.length > 8) v = v.slice(0, 8);
+
+  if(v.length >= 5){
+    e.target.value = `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
+  } else if(v.length >= 3){
+    e.target.value = `${v.slice(0,2)}/${v.slice(2)}`;
+  } else {
+    e.target.value = v;
+  }
+});
+
+async function confirmarTudo(btn){
+  if (dados.registros.length === 0){
+    alert('Cadastre ao menos uma pessoa.');
+    return;
+  }
+
+  setBotaoLoading(btn, 'Enviando...');
+
+  const payload = {
+  tipo: 'diaria',
+  enviadoPor: localStorage.getItem('siscag_usuario'),
+  perfil: localStorage.getItem('siscag_perfil'),
+
+  data: dados.data,
+  feira: dados.feira,
+  local: dados.local || '',
+  qtd: Number(dados.qtd),
+  registros: dados.registros
+};
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if (json.status !== 'ok') {
+      throw new Error(json.mensagem || 'Erro desconhecido');
+    }
+
+    alert('Diárias lançadas com sucesso.');
+
+    // 🔹 LIMPA SOMENTE APÓS SUCESSO
+    dados = { feira:'', local:'', qtd:'', registros:[] };
+
+    ['data','feira','local','qtd','nome','grupo'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+
+    document.getElementById('resumo').innerHTML = '';
+    setHoje();
+    mostrarMenuPrincipal();
+    setState('home');
+
+  } catch (err) {
+    alert('Erro ao enviar diárias:\n' + err.message);
+  } finally {
+    resetBotao(btn);
+  }
+}
+
+function sairVale(){
+  const confirmar = confirm('Deseja sair do VALE? Os dados não salvos serão perdidos.');
+
+  if(!confirmar) return;
+
+  // limpa dados temporários
+  vales = [];
+  document.getElementById('resumo_vale').innerHTML = '';
+
+  document.getElementById('vale_nome').value  = '';
+  document.getElementById('vale_valor').value = '';
+  document.getElementById('vale_caixa').value = '';
+
+  mostrarMenuPrincipal();
+  setState('home');
+}
+
+function sairConsulta() {
+
+  const perfil  = localStorage.getItem('siscag_perfil');
+  const usuario = localStorage.getItem('siscag_usuario');
+
+  // limpa extrato
+  limparExtrato();
+
+  const nomeInput = document.getElementById('consulta_nome');
+  const select    = document.getElementById('consulta_tipo');
+  const btnOk     = document.getElementById('btnConsultaOk');
+
+  if (perfil === 'ADMIN') {
+
+    // ADMIN → tudo livre
+    nomeInput.value = '';
+    nomeInput.disabled = false;
+
+    select.innerHTML = '<option value="">Digite o nome primeiro</option>';
+    select.disabled = true;
+
+    btnOk.disabled = true;
+
+  } else {
+
+    // NÃO ADMIN → restaura nome fixo
+    nomeInput.value = usuario;
+    nomeInput.disabled = true;
+
+    // força recarregar tipos
+    verificarNome();
+  }
+
+  mostrarMenuPrincipal();
+  setState('home');
+}
+
+function esconderMenuPrincipal(){
+  document.querySelector('.menu').style.display = 'none';
+}
+
+function mostrarMenuPrincipal(){
+  document.querySelector('.menu').style.display = 'flex';
+}
+
+function setState(estado) {
+
+  // 1️⃣ limpa todas as telas
+  document.querySelectorAll('.state')
+    .forEach(s => s.classList.remove('active'));
+
+  // 2️⃣ controle central do MENU
+  if (ESTADOS_SEM_MENU.includes(estado)) {
+    esconderMenuPrincipal();
+  } else {
+    mostrarMenuPrincipal();
+  }
+
+  // 3️⃣ regras específicas
+  if (estado === 'geral') {
+    carregarGeral();
+  }
+
+  if (estado === 'consulta') {
+    const perfil = localStorage.getItem('siscag_perfil');
+    if (perfil !== 'ADMIN') {
+      verificarNome();
+    }
+  }
+
+  if (estado === 'cadastro_menu') {
+    document.getElementById('submenuCadastro').classList.add('active');
+    document.getElementById('home').classList.add('active');
+    return;
+  }
+
+  // 4️⃣ desativa submenu cadastro fora dele
+  const submenu = document.getElementById('submenuCadastro');
+  if (submenu) submenu.classList.remove('active');
+
+  // 5️⃣ ativa a tela solicitada
+  const tela = document.getElementById(estado);
+  if (tela) {
+    tela.classList.add('active');
+  } else {
+    console.warn('Estado não encontrado:', estado);
+  }
+
+  estadoAtual = estado;
+}
+
+function dataValida(data){
+  const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  if(!regex.test(data)) return false;
+
+  const [_, d, m, a] = data.match(regex);
+  const dia = parseInt(d,10);
+  const mes = parseInt(m,10) - 1;
+  const ano = parseInt(a,10);
+
+  const teste = new Date(ano, mes, dia);
+  return (
+    teste.getFullYear() === ano &&
+    teste.getMonth() === mes &&
+    teste.getDate() === dia
+  );
+}
+
+function setHoje(){
+  const hoje = new Date();
+  const dia = String(hoje.getDate()).padStart(2,'0');
+  const mes = String(hoje.getMonth()+1).padStart(2,'0');
+  const ano = hoje.getFullYear();
+
+  document.getElementById('data').value = `${dia}/${mes}/${ano}`;
+}
+setHoje();
+
+function confirmarFeira(){
+  const feiraEl = document.getElementById('feira');
+  const localEl = document.getElementById('local');
+  const qtdEl   = document.getElementById('qtd');
+  const dataEl  = document.getElementById('data');
+
+  dados.feira = (feiraEl.value || '').trim();
+  dados.local = (localEl.value || '').trim();
+  dados.qtd   = (qtdEl.value || '').trim();
+  dados.data  = (dataEl.value  || '').trim();
+
+  if(!dados.feira){
+    alert('Informe a FEIRA.');
+    feiraEl.focus();
+    return;
+  }
+
+  if(!dados.qtd){
+    alert('Informe a QTD.');
+    qtdEl.focus();
+    return;
+  }
+
+  if(!dataValida(dados.data)){
+    alert('Informe uma DATA válida (dd/mm/aaaa).');
+    dataEl.focus();
+    return;
+  }
+
+  setState('cadastro_diaria_registro');
+  atualizarResumo();
+
+modoRegistro = true;
+toggleMenuPrincipal(false);
+}
+
+
+function addRegistro(){
+  const nomeEl  = document.getElementById('nome');
+  const grupoEl = document.getElementById('grupo');
+
+  const nome  = (nomeEl.value || '').trim();
+  const grupo = (grupoEl.value || '').trim();
+
+  if(!nome){
+    alert('Informe o NOME.');
+    nomeEl.focus();
+    return;
+  }
+
+const valorEl = document.getElementById('valor_diaria');
+
+dados.registros.push({
+  nome: nome,
+  grupo: grupo || '',
+  valor: valorEl ? valorEl.value : ''
+});
+
+
+  nomeEl.value = '';
+  grupoEl.value = '';
+  if (valorEl) valorEl.value = '';
+
+  atualizarResumo();
+  nomeEl.focus(); // agiliza próximo lançamento
+}
+
+function alterarDiaria(){
+  // volta para a tela de feira SEM apagar dados
+  modoRegistro = false;
+  toggleMenuPrincipal(true);
+  toggleBotoesRegistro(false);
+  setState('cadastro_diaria_feira');
+}
+
+function sairDiaria() {
+
+  if (!confirm('Deseja sair e descartar este cadastro?')) return;
+
+  // limpa dados temporários
+  dados = {
+    feira: '',
+    local: '',
+    qtd: '',
+    registros: []
+  };
+
+  // limpa campos
+  [
+    'data','feira','local','qtd',
+    'nome','grupo','valor_diaria'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  const resumo = document.getElementById('resumo');
+  if (resumo) resumo.innerHTML = '';
+
+  setHoje();
+
+  // volta para HOME (menu reaparece automaticamente)
+  setState('home');
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function setHojeVale(){
+  const hoje = new Date();
+  const d = String(hoje.getDate()).padStart(2,'0');
+  const m = String(hoje.getMonth()+1).padStart(2,'0');
+  const a = hoje.getFullYear();
+  document.getElementById('vale_data').value = `${d}/${m}/${a}`;
+}
+
+function addVale(){
+  const data  = document.getElementById('vale_data');
+  const nome  = document.getElementById('vale_nome');
+  const valor = document.getElementById('vale_valor');
+  const caixa = document.getElementById('vale_caixa');
+
+  if(!data.value || !dataValida(data.value)){
+    alert('Informe uma DATA válida.');
+    data.focus(); return;
+  }
+
+  if(!nome.value.trim()){
+    alert('Informe o NOME.');
+    nome.focus(); return;
+  }
+
+  if(!valor.value.trim()){
+    alert('Informe o VALOR.');
+    valor.focus(); return;
+  }
+
+  if(!caixa.value.trim()){
+    alert('Informe o CAIXA.');
+    caixa.focus(); return;
+  }
+
+  vales.push({
+  data: data.value,
+  nome: nome.value.trim(),
+  valor: valor.value,
+  caixa: caixa.value.trim()
+});
+
+atualizarResumoVale(); // PRIMEIRO mostra no resumo
+
+// SÓ DEPOIS limpa
+nome.value = '';
+valor.value = '';
+caixa.value = '';
+nome.focus();
+
+}
+
+async function confirmarVales(btn){
+  if(vales.length === 0){
+    alert('Nenhum VALE lançado.');
+    return;
+  }
+
+  setBotaoLoading(btn, 'Enviando...');
+
+  const payload = {
+  tipo: 'vale',
+  enviadoPor: localStorage.getItem('siscag_usuario'),
+  perfil: localStorage.getItem('siscag_perfil'),
+
+  vales: vales
+};
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if(json.status !== 'ok'){
+      throw new Error(json.mensagem || 'Erro desconhecido');
+    }
+
+    alert('Vales lançados com sucesso.');
+
+    // limpa dados
+    vales = [];
+    document.getElementById('resumo_vale').innerHTML = '';
+    document.getElementById('vale_nome').value  = '';
+    document.getElementById('vale_valor').value = '';
+    document.getElementById('vale_caixa').value = '';
+
+    mostrarMenuPrincipal();
+    setState('home');
+
+  } catch(err){
+    alert('Erro ao enviar vales:\n' + err.message);
+  } finally {
+    resetBotao(btn);
+  }
+}
+
+
+function atualizarResumo(){
+  const resumoEl = document.getElementById('resumo');
+  if(!resumoEl) return;
+
+  const qtdTxt = dados.qtd == 1 ? '01 DIÁRIA' : `${dados.qtd} DIÁRIAS`;
+
+  resumoEl.innerHTML = `
+    <div style="margin-bottom:8px;">
+      <strong>DATA:</strong> ${escapeHtml(dados.data)}
+      &nbsp;•&nbsp; ${escapeHtml(dados.feira)}
+      &nbsp;•&nbsp; ${escapeHtml(dados.local)}
+      &nbsp;•&nbsp; ${qtdTxt}
+    </div>
+
+    <ol>
+      ${
+        dados.registros.map(r => {
+          let texto = escapeHtml(r.nome);
+          if (r.grupo) {
+            texto += ` (${escapeHtml(r.grupo)})`;
+          }
+          return `<li>${texto}</li>`;
+        }).join('')
+      }
+    </ol>
+  `;
+}
+
+
+function toggleMenuPrincipal(visivel){
+  const menu = document.querySelector('.menu');
+  if(menu){
+    menu.style.display = visivel ? 'flex' : 'none';
+  }
+}
+
+function toggleBotoesRegistro(visivel){
+  const btns = document.getElementById('botoesRegistro');
+  if(btns){
+    btns.style.display = visivel ? 'flex' : 'none';
+  }
+}
+
+function atualizarResumoVale(){
+  const el = document.getElementById('resumo_vale');
+  if(!el) return;
+
+  el.innerHTML = `
+    <ul>
+      ${vales.map(v => `
+        <li>
+          ${v.data} • ${escapeHtml(v.nome)} • R$ ${v.valor} • ${escapeHtml(v.caixa)}
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+
+function abrirModalEdicao(){
+  document.getElementById('modal-edicao').classList.remove('hidden');
+  renderizarListaEdicao();
+}
+
+function fecharModal(){
+  document.getElementById('modal-edicao').classList.add('hidden');
+}
+
+function renderizarListaEdicao(){
+  const container = document.getElementById('lista-edicao');
+
+  container.innerHTML = dados.registros.map((r, i) => `
+    <div class="modal-item">
+      <span>${escapeHtml(r.nome)}${r.grupo ? ` (${escapeHtml(r.grupo)})` : ''}</span>
+      <span>
+        <button onclick="editarRegistro(${i})">✏️</button>
+        <button onclick="excluirRegistro(${i})">🗑</button>
+      </span>
+    </div>
+  `).join('');
+}
+
+function editarRegistro(index){
+  const r = dados.registros[index];
+
+  const container = document.getElementById('lista-edicao');
+
+  container.innerHTML = `
+    <div class="field">
+      <label>Nome</label>
+      <input id="edit_nome" value="${r.nome}">
+    </div>
+
+    <div class="field">
+      <label>Grupo</label>
+      <input id="edit_grupo" value="${r.grupo || ''}">
+    </div>
+
+    <button onclick="salvarEdicao(${index})">SALVAR</button>
+    <button onclick="renderizarListaEdicao()">CANCELAR</button>
+  `;
+}
+
+function salvarEdicao(index){
+  const nome = document.getElementById('edit_nome').value.trim();
+  const grupo = document.getElementById('edit_grupo').value.trim();
+
+  if(!nome){
+    alert('Nome obrigatório');
+    return;
+  }
+
+  dados.registros[index] = { nome, grupo };
+
+  atualizarResumo();        // atualiza tela principal
+  renderizarListaEdicao();  // volta pra lista
+}
+
+function excluirRegistro(index){
+  if(!confirm('Excluir este registro?')) return;
+
+  dados.registros.splice(index, 1);
+
+  atualizarResumo();
+  renderizarListaEdicao();
+}
+
+function fecharModalVale(){
+  document.getElementById('modalVale').style.display = 'none';
+  atualizarResumoVale();
+}
+
+function abrirModalEdicaoVale(){
+  renderizarListaEdicaoVale();
+  document.getElementById('modalVale').style.display = 'flex';
+}
+
+function removerVale(index){
+  if(!confirm('Remover este vale?')) return;
+  vales.splice(index, 1);
+  renderizarListaEdicaoVale();
+}
+
+// ENTER na etapa FEIRA
+['data','feira','local','qtd'].forEach((id, index, arr) => {
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+
+    // último campo (Qtd) → confirma
+    if(id === 'qtd'){
+      confirmarFeira();
+      return;
+    }
+
+    // próximo campo
+    const proximo = document.getElementById(arr[index + 1]);
+    if(proximo) proximo.focus();
+  });
+});
+
+function renderizarListaEdicaoVale(){
+  const container = document.getElementById('listaEdicaoVale');
+  if(!container) return;
+
+  if(vales.length === 0){
+    container.innerHTML = '<p>Nenhum vale lançado.</p>';
+    return;
+  }
+
+  container.innerHTML = vales.map((v, i) => `
+    <div class="modal-item">
+      <span>${escapeHtml(v.nome)} — R$ ${v.valor} (${escapeHtml(v.caixa)})</span>
+      <span>
+        <button onclick="editarVale(${i})">✏️</button>
+        <button onclick="removerVale(${i})">🗑</button>
+      </span>
+    </div>
+  `).join('');
+}
+
+function editarVale(index){
+  const v = vales[index];
+  const container = document.getElementById('listaEdicaoVale');
+
+  container.innerHTML = `
+    <div class="field">
+      <label>Nome</label>
+      <input id="edit_vale_nome" value="${v.nome}">
+    </div>
+
+    <div class="field">
+      <label>Valor (R$)</label>
+      <input id="edit_vale_valor" value="${v.valor}">
+    </div>
+
+    <div class="field">
+      <label>Caixa</label>
+      <input id="edit_vale_caixa" value="${v.caixa}">
+    </div>
+
+    <div style="margin-top:10px; display:flex; gap:8px;">
+      <button class="btn-confirmar" onclick="salvarEdicaoVale(${index})">SALVAR</button>
+      <button class="btn-sair" onclick="renderizarListaEdicaoVale()">CANCELAR</button>
+    </div>
+  `;
+}
+
+function salvarEdicaoVale(index){
+  const nome  = document.getElementById('edit_vale_nome').value.trim();
+  const valor = document.getElementById('edit_vale_valor').value.trim();
+  const caixa = document.getElementById('edit_vale_caixa').value.trim();
+
+  if(!nome || !valor || !caixa){
+    alert('Preencha todos os campos.');
+    return;
+  }
+
+  vales[index] = {
+    ...vales[index],
+    nome,
+    valor,
+    caixa
+  };
+
+  atualizarResumoVale();
+  renderizarListaEdicaoVale();
+}
+
+async function buscarExtrato(){
+  const btn = document.getElementById('btnConsultaOk');
+  const nome = document.getElementById('consulta_nome').value.trim();
+  const tipo = document.getElementById('consulta_tipo').value;
+
+  if(!nome){
+    alert('Informe o nome.');
+    return;
+  }
+
+  // 🔹 estado visual
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+
+  try {
+
+  const resp = await fetch(
+  API_URL +
+    `?consulta=extrato&nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}`
+);
+
+    const dados = await resp.json();
+
+    // 🔹 A PARTIR DAQUI É SEU CÓDIGO ORIGINAL
+    let qtd = 0;
+    let total = 0;
+    let vale = 0;
+
+    const tipoFiltro = tipo.trim().toUpperCase();
+
+const lista = dados.filter(l => {
+  if(tipoFiltro === 'TODOS') return true;
+
+  return String(l.situacao || '')
+    .trim()
+    .toUpperCase() === tipoFiltro;
+});
+
+
+    document.getElementById('lista_extrato').innerHTML = `
+      <table style="width:100%; font-size:13px;">
+        <thead>
+          <tr>
+            <th align="left">Data</th>
+            <th align="left">Descrição</th>
+            <th align="center">Qtd</th>
+            <th align="right">Crédito</th>
+            <th align="right">Débito</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            lista.map(l => {
+              qtd += l.qtd;
+              total += l.credito;
+              vale += l.debito;
+
+              return `
+                <tr>
+                  <td>${l.data}</td>
+                  <td>${l.descricao}</td>
+                  <td align="center">${l.qtd}</td>
+                  <td align="right">${formatMoeda(l.credito)}</td>
+                  <td align="right">${formatMoeda(l.debito)}</td>
+                </tr>
+              `;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    `;
+
+    document.getElementById('ext_qtd').textContent   = qtd;
+    document.getElementById('ext_total').textContent = formatMoeda(total);
+    document.getElementById('ext_vale').textContent  = formatMoeda(vale);
+    document.getElementById('ext_saldo').textContent = formatMoeda(total - vale);
+
+  } catch(err){
+    alert('Erro ao consultar extrato.');
+  } finally {
+    // 🔹 volta ao normal SEMPRE
+    btn.disabled = false;
+    btn.textContent = 'OK';
+  }
+}
+
+function limparExtrato(){
+  document.getElementById('lista_extrato').innerHTML = '';
+
+  document.getElementById('ext_qtd').textContent   = '0';
+  document.getElementById('ext_total').textContent = 'R$ 0,00';
+  document.getElementById('ext_vale').textContent  = 'R$ 0,00';
+  document.getElementById('ext_saldo').textContent = 'R$ 0,00';
+
+  // 🔹 reset do select TIPO
+  const select = document.getElementById('consulta_tipo');
+  select.innerHTML = '<option value="">Digite o nome primeiro</option>';
+  select.disabled = true;
+
+  // 🔹 botão OK
+  const btnOk = document.getElementById('btnConsultaOk');
+  if (btnOk) btnOk.disabled = true;
+}
+
+function formatMoeda(v){
+  return 'R$ ' + Number(v || 0).toFixed(2).replace('.',',');
+}
+
+async function verificarNome(){
+  const nome = document.getElementById('consulta_nome').value.trim();
+  const select = document.getElementById('consulta_tipo');
+  const btnOk = document.getElementById('btnConsultaOk');
+
+  select.innerHTML = '<option>Carregando...</option>';
+  select.disabled = true;
+  btnOk.disabled = true;
+
+  if(!nome){
+    select.innerHTML = '<option>Informe o nome</option>';
+    return;
+  }
+
+  try {
+    const resp = await fetch(
+      API_URL + '?consulta=situacoes&nome=' + encodeURIComponent(nome)
+    );
+    const situacoes = await resp.json();
+
+    if(situacoes.length === 0){
+      select.innerHTML = '<option>Nenhum registro</option>';
+      return;
+    }
+
+    select.innerHTML = '<option value="TODOS">TODOS</option>';
+
+    situacoes.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      select.appendChild(opt);
+    });
+
+    select.disabled = false;
+    btnOk.disabled = false;
+
+  } catch(err){
+    select.innerHTML = '<option>Erro ao consultar</option>';
+  }
+}
+
+async function login() {
+
+  const nome  = document.getElementById('login_nome').value.trim();
+  const senha = document.getElementById('login_senha').value.trim();
+  const btn   = document.getElementById('btnLogin');
+
+  if (!nome || !senha) {
+    alert('Informe usuário e senha');
+    return;
+  }
+
+  // 🔄 loading
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+
+    const resp = await fetch(
+      API_URL +
+      `?acao=login&nome=${encodeURIComponent(nome)}&senha=${encodeURIComponent(senha)}`
+    );
+
+    const json = await resp.json();
+
+    if (json.status !== 'ok') {
+      document.getElementById('login_erro').style.display = 'block';
+      return;
+    }
+
+    // 🔐 salva sessão
+    const usuario = json.usuario;
+    const perfil  = usuario.startsWith('A_') ? 'ADMIN' : 'USER';
+
+    localStorage.setItem('siscag_usuario', usuario);
+    localStorage.setItem('siscag_perfil', perfil);
+
+    iniciarSessao();
+
+  } catch (e) {
+    alert('Erro ao conectar');
+  } finally {
+    // 🔁 restaura botão
+    btn.disabled = false;
+    btn.textContent = 'OK';
+  }
+}
+
+function iniciarSessao() {
+
+  const usuario = localStorage.getItem('siscag_usuario');
+  const perfil  = localStorage.getItem('siscag_perfil');
+
+  const login = document.getElementById('login');
+  const app   = document.getElementById('app');
+
+  if (!usuario || !perfil) {
+    // 🔒 mostra login
+    login.style.display = 'flex';
+    app.style.display   = 'none';
+    return;
+  }
+
+  // ✅ mostra sistema
+  login.style.display = 'none';
+  app.style.display   = 'flex';
+
+  if (perfil !== 'ADMIN') {
+    bloquearCadastro();
+  }
+
+  setState('home');
+}
+
+function bloquearCadastro() {
+
+  const perfil = localStorage.getItem('siscag_perfil');
+
+  // 🔒 REGRA DE OURO:
+  // Se for ADMIN, NÃO bloqueia NADA
+  if (perfil === 'ADMIN') {
+    return;
+  }
+
+  // 👤 USUÁRIO COMUM — bloqueios
+  document.querySelectorAll('.menu button')
+    .forEach(btn => {
+      if (btn.textContent.includes('CADASTRO')) {
+        btn.style.display = 'none';
+      }
+    });
+
+  // trava nome na consulta
+  const nomeConsulta = document.getElementById('consulta_nome');
+  if (nomeConsulta) {
+    nomeConsulta.value = localStorage.getItem('siscag_usuario') || '';
+    nomeConsulta.disabled = true;
+  }
+
+  // 🔓 libera o TIPO imediatamente
+  const selectTipo = document.getElementById('consulta_tipo');
+  if (selectTipo) {
+    selectTipo.disabled = false;
+  }
+}
+
+function sairSistema() {
+
+  const confirmar = confirm('Deseja sair do sistema?');
+  if (!confirmar) return;
+
+  // 🔐 limpa sessão
+  localStorage.removeItem('siscag_usuario');
+  localStorage.removeItem('siscag_perfil');
+
+  // 🔄 RESET COMPLETO DA UI
+  resetarInterface();
+
+  // 🔄 limpa login
+  document.getElementById('login_nome').value = '';
+  document.getElementById('login_senha').value = '';
+  document.getElementById('login_erro').style.display = 'none';
+
+  // 🔁 volta para login
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+
+function resetarInterface() {
+
+  // 🔹 mostra todos os botões do menu (ADMIN volta ao normal)
+  document.querySelectorAll('.menu button')
+    .forEach(btn => {
+      btn.style.display = '';
+    });
+
+  // 🔹 remove qualquer tela ativa anterior
+  document.querySelectorAll('.state')
+    .forEach(s => s.classList.remove('active'));
+
+  // 🔹 esconde submenu de cadastro
+  const submenu = document.getElementById('submenuCadastro');
+  if (submenu) submenu.classList.remove('active');
+
+  // 🔹 reseta completamente a consulta
+  resetarConsulta();
+
+  // 🔹 volta para HOME
+  const home = document.getElementById('home');
+  if (home) home.classList.add('active');
+
+  mostrarMenuPrincipal();
+  estadoAtual = 'home';
+}
+
+function resetarConsulta() {
+
+  // 🔹 limpa campo nome
+  const nome = document.getElementById('consulta_nome');
+  if (nome) {
+    nome.value = '';
+    nome.disabled = false;
+  }
+
+  // 🔹 reseta select tipo
+  const tipo = document.getElementById('consulta_tipo');
+  if (tipo) {
+    tipo.innerHTML = '<option value="">Digite o nome primeiro</option>';
+    tipo.disabled = true;
+  }
+
+  // 🔹 limpa lista
+  const lista = document.getElementById('lista_extrato');
+  if (lista) lista.innerHTML = '';
+
+  // 🔹 limpa rodapé
+  document.getElementById('ext_qtd').textContent   = '0';
+  document.getElementById('ext_total').textContent = 'R$ 0,00';
+  document.getElementById('ext_vale').textContent  = 'R$ 0,00';
+  document.getElementById('ext_saldo').textContent = 'R$ 0,00';
+
+  // 🔹 botão OK
+  const btn = document.getElementById('btnConsultaOk');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'OK';
+  }
+}
+
+function voltarParaFeira(){
+  // volta para a tela anterior
+  setState('cadastro_diaria_feira');
+
+  // mantém menu e dados
+  modoRegistro = false;
+  toggleMenuPrincipal(true);
+}
+
+// ENTER na etapa REGISTRO
+const nomeEl  = document.getElementById('nome');
+const grupoEl = document.getElementById('grupo');
+
+if(nomeEl && grupoEl){
+
+  nomeEl.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      grupoEl.focus();
+    }
+  });
+
+  grupoEl.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      addRegistro();
+    }
+  });
+
+  function setBotaoLoading(btn, texto) {
+  btn.dataset.originalText = btn.textContent;
+  btn.textContent = texto || 'Enviando...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+}
+
+function resetBotao(btn) {
+  btn.textContent = btn.dataset.originalText || 'CONFIRMAR';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+}
+
+function setHojeDespesa(){
+  const hoje = new Date();
+  const d = String(hoje.getDate()).padStart(2,'0');
+  const m = String(hoje.getMonth()+1).padStart(2,'0');
+  const a = hoje.getFullYear();
+  document.getElementById('despesa_data').value = `${d}/${m}/${a}`;
+}
+
+const inputDespesaValor = document.getElementById('despesa_valor');
+
+if(inputDespesaValor){
+  inputDespesaValor.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g,'');
+    if(v === '') return;
+    v = (Number(v) / 100).toFixed(2);
+    e.target.value = v.replace('.',',');
+  });
+}
+
+async function confirmarDespesa(btn){
+
+  const data  = document.getElementById('despesa_data');
+  const valor = document.getElementById('despesa_valor');
+  const feira = document.getElementById('despesa_feira');
+  const desc  = document.getElementById('despesa_descricao');
+  const obs   = document.getElementById('despesa_obs');
+
+  if(!data.value || !dataValida(data.value)){
+    alert('Informe uma DATA válida.');
+    data.focus(); return;
+  }
+  if(!valor.value.trim()){
+    alert('Informe o VALOR.');
+    valor.focus(); return;
+  }
+  if(!feira.value.trim()){
+    alert('Informe a FEIRA.');
+    feira.focus(); return;
+  }
+  if(!desc.value.trim()){
+    alert('Informe a DESCRIÇÃO.');
+    desc.focus(); return;
+  }
+  if(!obs.value.trim()){
+    alert('Informe a OBSERVAÇÃO.');
+    obs.focus(); return;
+  }
+
+  setBotaoLoading(btn,'Enviando...');
+
+  const payload = {
+    tipo: 'despesa',
+    enviadoPor: localStorage.getItem('siscag_usuario'),
+    perfil: localStorage.getItem('siscag_perfil'),
+
+    data: data.value,
+    valor: valor.value,
+    feira: feira.value,
+    descricao: desc.value,
+    observacao: obs.value
+  };
+
+  try{
+    const resp = await fetch(API_URL,{
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+    if(json.status !== 'ok'){
+      throw new Error(json.mensagem || 'Erro desconhecido');
+    }
+
+    alert('Despesa lançada com sucesso.');
+
+    // limpa
+    data.value = '';
+    valor.value = '';
+    feira.value = '';
+    desc.value = '';
+    obs.value  = '';
+
+    mostrarMenuPrincipal();
+    setState('home');
+
+  }catch(err){
+    alert('Erro ao lançar despesa:\n' + err.message);
+  }finally{
+    resetBotao(btn);
+  }
+}
+
+function sairDespesa(){
+  if(!confirm('Deseja sair sem salvar a despesa?')) return;
+
+  ['despesa_data','despesa_valor','despesa_feira','despesa_descricao','despesa_obs']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+
+  mostrarMenuPrincipal();
+  setState('home');
+}
+
+ /* === FORMATAÇÃO AUTOMÁTICA DO VALOR DO VALE === */
+  const inputValeValor = document.getElementById('vale_valor');
+  const inputValorDiaria = document.getElementById('valor_diaria');
+  const valeDataInput = document.getElementById('vale_data');
+
+aplicarMascaraValor(inputValeValor);
+aplicarMascaraValor(inputValorDiaria);
+aplicarMascaraValor(inputDespesaValor);
+
+if (inputValorDiaria) {
+  inputValorDiaria.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (!v) {
+      e.target.value = '';
+      return;
+    }
+
+    v = Number(v) / 100;
+    e.target.value = formatarMoedaBR(v);
+  });
+}
+
+  if (inputValeValor) {
+  inputValeValor.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (!v) {
+      e.target.value = '';
+      return;
+    }
+
+    v = Number(v) / 100;
+    e.target.value = formatarMoedaBR(v);
+  });
+}
+
+if(valeDataInput){
+  valeDataInput.addEventListener('input', function(e){
+    let v = e.target.value.replace(/\D/g, '');
+    if(v.length > 8) v = v.slice(0, 8);
+
+    if(v.length >= 5){
+      e.target.value = `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
+    } else if(v.length >= 3){
+      e.target.value = `${v.slice(0,2)}/${v.slice(2)}`;
+    } else {
+      e.target.value = v;
+    }
+  });
+}
+// ENTER no cadastro de VALE
+['vale_data','vale_valor','vale_nome','vale_caixa'].forEach((id, index, arr) => {
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+
+    // último campo → OK
+    if(id === 'vale_caixa'){
+      addVale();
+      return;
+    }
+
+    const proximo = document.getElementById(arr[index + 1]);
+    if(proximo) proximo.focus();
+  });
+});
+
+const campoNomeConsulta = document.getElementById('consulta_nome');
+
+if (campoNomeConsulta) {
+
+  campoNomeConsulta.addEventListener('input', () => {
+    validacaoViaEnter = false;
+    limparExtrato();
+  });
+
+  campoNomeConsulta.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      validacaoViaEnter = true;
+      verificarNome();
+    }
+  });
+
+  campoNomeConsulta.addEventListener('blur', () => {
+    if (validacaoViaEnter) {
+      validacaoViaEnter = false;
+      return; // 👈 impede dupla execução
+    }
+    verificarNome();
+  });
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  iniciarSessao();
+});
+
+/* ===============================
+   FORMATAÇÃO MONETÁRIA PADRÃO BR
+   =============================== */
+
+function formatarMoedaBR(valor) {
+  const numero = Number(valor);
+  if (isNaN(numero)) return '';
+  return numero.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function aplicarMascaraValor(input) {
+  if (!input) return;
+
+  input.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '');
+
+    if (!v) {
+      e.target.value = '';
+      return;
+    }
+
+    v = Number(v) / 100;
+    e.target.value = formatarMoedaBR(v);
+  });
+}
+
+function carregarGeral() {
+
+  const perfil = localStorage.getItem('siscag_perfil');
+
+  if (perfil !== 'ADMIN') {
+    alert('Acesso restrito.');
+    return;
+  }
+
+  fetch(`${API_URL}?consulta=geral&perfil=${perfil}`)
+    .then(r => r.json())
+    .then(dados => {
+      if (dados.status === 'erro') {
+        throw new Error(dados.mensagem);
+      }
+      montarRelatorioGeral(dados);
+    })
+    .catch(err => {
+      console.error('GERAL:', err);
+      alert('Erro ao carregar relatório geral');
+    });
+}
+
+
+function montarRelatorioGeral(dados) {
+
+  const body = document.getElementById('geral-body');
+  const totalSpan = document.getElementById('geral-total');
+
+  if (!body || !totalSpan) return;
+
+  body.innerHTML = '';
+
+  let total = 0;
+
+  dados.registros.forEach(r => {
+
+    // só entra quem tem saldo ≠ 0
+    const saldo = Number(r.saldo || 0);
+    if (saldo === 0) return;
+
+    total += saldo;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+  <td>${r.nome}</td>
+  <td>R$ ${formatarMoedaBR(r.diaria)}</td>
+  <td>R$ ${formatarMoedaBR(r.vale)}</td>
+  <td class="${Number(r.saldo) < 0 ? 'negativo' : 'positivo'}">
+    R$ ${formatarMoedaBR(r.saldo)}
+  </td>
+`;
+
+
+    body.appendChild(tr);
+  });
+
+  totalSpan.textContent = `R$ ${formatarMoedaBR(dados.total)}`;
+}
+
+function sairGeral() {
+  mostrarMenuPrincipal();
+  setState('home');
+}
+
+</script>
+
+<div id="modal-edicao" class="modal hidden">
+  <div class="modal-box">
+
+    <h3>Editar registros da diária</h3>
+
+    <div id="lista-edicao"></div>
+
+    <div class="modal-actions">
+      <button onclick="fecharModal()">FECHAR</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="modalVale" class="modal hidden">
+  <div class="modal-box">
+    <h3>Editar Vales</h3>
+    <div id="listaEdicaoVale"></div>
+    <div style="margin-top:12px; text-align:right;">
+      <button class="btn-confirmar" onclick="fecharModalVale()">OK</button>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
