@@ -44,6 +44,13 @@ body{
   font-weight:600;
   cursor:pointer;
 }
+
+.submenu button.active-btn{
+  background:#0b4c5f;
+  color:#ffffff;
+  font-weight:700;
+}
+
 .menu button.active{ outline:2px solid #fff; }
 
 .submenu{
@@ -482,12 +489,6 @@ body{
   font-weight: bold;
 }
 
-.total-geral {
-  margin-top: 12px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: right;
-}
 /* ===== RELATÓRIO GERAL ===== */
 
 #geral .relatorio table {
@@ -572,8 +573,7 @@ body{
 
   <div class="menu">
     <button onclick="setState('cadastro_menu')" id="btnCadastro">CADASTRO</button>
-    <button onclick="setState('consulta')">CONSULTA</button>
-    <button onclick="setState('geral')">GERAL</button>
+    <button onclick="setState('consulta_menu')">CONSULTA</button>
     <button onclick="setState('mensagem')">AJUDA</button>
   </div>
 
@@ -584,11 +584,22 @@ body{
     <button onclick="setState('cadastro_despesa')">DESPESA</button>
   </div>
 
+  <!-- SUBMENU CONSULTA -->
+<div class="submenu state" id="submenuConsulta">
+  <button id="btnConsultaNome"  onclick="setState('consulta')">NOME</button>
+  <button id="btnConsultaGeral" onclick="setState('geral')">GERAL</button>
+</div>
+
   <div class="divider"></div>
 
   <div class="content">
 
     <div class="state" id="geral">
+
+       <div id="geral-loading" style="display:none; text-align:center; margin:20px 0; opacity:.85;">
+    Carregando relatório…
+  </div>
+
 
   <div class="relatorio">
     <table>
@@ -603,10 +614,20 @@ body{
       <tbody id="geral-body"></tbody>
     </table>
 
-    <div class="total-geral">
-      TOTAL: <span id="geral-total">R$ 0,00</span>
     </div>
+
+  <div class="rodape-extrato">
+
+  <div class="linha-resumo">
+    <span>DIÁRIAS: <strong id="geral-diarias">R$ 0,00</strong></span>
+    <span>VALES: <strong id="geral-vales">R$ 0,00</strong></span>
   </div>
+
+  <div class="linha-saldo">
+    A PAGAR: <strong id="geral-apagar">R$ 0,00</strong>
+  </div>
+
+</div>
 
   <div class="acoes-finais">
     <button class="btn-sair" onclick="sairGeral()">SAIR</button>
@@ -1027,48 +1048,59 @@ function mostrarMenuPrincipal(){
 
 function setState(estado) {
 
-  // 1️⃣ limpa todas as telas
+  // desativa todas as telas
   document.querySelectorAll('.state')
-    .forEach(s => s.classList.remove('active'));
+    .forEach(el => el.classList.remove('active'));
 
-  // 2️⃣ controle central do MENU
-  if (ESTADOS_SEM_MENU.includes(estado)) {
-    esconderMenuPrincipal();
-  } else {
-    mostrarMenuPrincipal();
-  }
+  // esconde submenus por padrão
+  document.getElementById('submenuCadastro')?.classList.remove('active');
+  document.getElementById('submenuConsulta')?.classList.remove('active');
 
-  // 3️⃣ regras específicas
-  if (estado === 'geral') {
-    carregarGeral();
-  }
+  // ===== MENU CONSULTA =====
+  if (estado === 'consulta_menu') {
+  limparBotoesConsulta();
+  document.getElementById('submenuConsulta').classList.add('active');
+  document.getElementById('home').classList.add('active');
+  mostrarMenuPrincipal();
+  return;
+}
 
+  // ===== CONSULTA POR NOME =====
   if (estado === 'consulta') {
-    const perfil = localStorage.getItem('siscag_perfil');
-    if (perfil !== 'ADMIN') {
-      verificarNome();
-    }
-  }
+  limparBotoesConsulta();
+  document.getElementById('btnConsultaNome').classList.add('active-btn');
 
+  document.getElementById('submenuConsulta').classList.add('active');
+  document.getElementById('consulta').classList.add('active');
+
+  esconderMenuPrincipal();
+  return;
+}
+
+  // ===== CONSULTA GERAL =====
+  if (estado === 'geral') {
+  limparBotoesConsulta();
+  document.getElementById('btnConsultaGeral').classList.add('active-btn');
+
+  document.getElementById('submenuConsulta').classList.add('active');
+  document.getElementById('geral').classList.add('active');
+
+  esconderMenuPrincipal();
+  carregarGeral();
+  return;
+}
+
+  // ===== CADASTRO =====
   if (estado === 'cadastro_menu') {
     document.getElementById('submenuCadastro').classList.add('active');
     document.getElementById('home').classList.add('active');
+    mostrarMenuPrincipal();
     return;
   }
 
-  // 4️⃣ desativa submenu cadastro fora dele
-  const submenu = document.getElementById('submenuCadastro');
-  if (submenu) submenu.classList.remove('active');
-
-  // 5️⃣ ativa a tela solicitada
-  const tela = document.getElementById(estado);
-  if (tela) {
-    tela.classList.add('active');
-  } else {
-    console.warn('Estado não encontrado:', estado);
-  }
-
-  estadoAtual = estado;
+  // ===== PADRÃO =====
+  document.getElementById(estado)?.classList.add('active');
+  mostrarMenuPrincipal();
 }
 
 function dataValida(data){
@@ -2168,6 +2200,13 @@ function carregarGeral() {
     return;
   }
 
+  const loading = document.getElementById('geral-loading');
+  const body    = document.getElementById('geral-body');
+
+  // 🔄 estado visual inicial
+  if (loading) loading.style.display = 'block';
+  if (body) body.innerHTML = '';
+
   fetch(`${API_URL}?consulta=geral&perfil=${perfil}`)
     .then(r => r.json())
     .then(dados => {
@@ -2179,6 +2218,10 @@ function carregarGeral() {
     .catch(err => {
       console.error('GERAL:', err);
       alert('Erro ao carregar relatório geral');
+    })
+    .finally(() => {
+      // ✅ remove loading sempre
+      if (loading) loading.style.display = 'none';
     });
 }
 
@@ -2186,42 +2229,63 @@ function carregarGeral() {
 function montarRelatorioGeral(dados) {
 
   const body = document.getElementById('geral-body');
-  const totalSpan = document.getElementById('geral-total');
+  const spanDiarias = document.getElementById('geral-diarias');
+  const spanVales   = document.getElementById('geral-vales');
+  const spanAPagar  = document.getElementById('geral-apagar');
 
-  if (!body || !totalSpan) return;
+  if (!body || !spanDiarias || !spanVales || !spanAPagar) {
+    console.error('Elementos do relatório geral não encontrados');
+    return;
+  }
 
   body.innerHTML = '';
 
-  let total = 0;
+  let totalDiarias = 0;
+  let totalVales   = 0;
+  let totalAPagar  = 0;
 
   dados.registros.forEach(r => {
 
-    // só entra quem tem saldo ≠ 0
-    const saldo = Number(r.saldo || 0);
-    if (saldo === 0) return;
+    const diaria = Number(r.diaria || 0);
+    const vale   = Number(r.vale   || 0);
+    const saldo  = Number(r.saldo  || 0);
 
-    total += saldo;
+    if (diaria === 0 && vale === 0 && saldo === 0) return;
+
+    totalDiarias += diaria;
+    totalVales   += vale;
+
+    // REGRA DO GERAL
+    if (saldo > 0) {
+      totalAPagar += saldo;
+    }
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-  <td>${r.nome}</td>
-  <td>R$ ${formatarMoedaBR(r.diaria)}</td>
-  <td>R$ ${formatarMoedaBR(r.vale)}</td>
-  <td class="${Number(r.saldo) < 0 ? 'negativo' : 'positivo'}">
-    R$ ${formatarMoedaBR(r.saldo)}
-  </td>
-`;
-
+      <td>${r.nome}</td>
+      <td>R$ ${formatarMoedaBR(diaria)}</td>
+      <td>R$ ${formatarMoedaBR(vale)}</td>
+      <td class="${saldo < 0 ? 'negativo' : 'positivo'}">
+        R$ ${formatarMoedaBR(saldo)}
+      </td>
+    `;
 
     body.appendChild(tr);
   });
 
-  totalSpan.textContent = `R$ ${formatarMoedaBR(dados.total)}`;
+  spanDiarias.textContent = `R$ ${formatarMoedaBR(totalDiarias)}`;
+  spanVales.textContent   = `R$ ${formatarMoedaBR(totalVales)}`;
+  spanAPagar.textContent  = `R$ ${formatarMoedaBR(totalAPagar)}`;
 }
 
 function sairGeral() {
   mostrarMenuPrincipal();
   setState('home');
+}
+
+function limparBotoesConsulta() {
+  document.getElementById('btnConsultaNome')?.classList.remove('active-btn');
+  document.getElementById('btnConsultaGeral')?.classList.remove('active-btn');
 }
 
 </script>
