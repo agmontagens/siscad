@@ -1065,8 +1065,39 @@ function setState(estado) {
   return;
 }
 
+// ===== CADASTRO DIÁRIA - FEIRA =====
+if (estado === 'cadastro_diaria_feira') {
+
+  document.getElementById('cadastro_diaria_feira').classList.add('active');
+
+  esconderMenuPrincipal();
+
+  return;
+}
+
+// ===== CADASTRO VALE =====
+if (estado === 'cadastro_vale') {
+
+  document.getElementById('cadastro_vale').classList.add('active');
+
+  esconderMenuPrincipal();
+
+  return;
+}
+
+// ===== CADASTRO DESPESA =====
+if (estado === 'cadastro_despesa') {
+
+  document.getElementById('cadastro_despesa').classList.add('active');
+
+  esconderMenuPrincipal();
+
+  return;
+}
+
   // ===== CONSULTA POR NOME =====
-  if (estado === 'consulta') {
+if (estado === 'consulta') {
+
   limparBotoesConsulta();
   document.getElementById('btnConsultaNome').classList.add('active-btn');
 
@@ -1074,8 +1105,31 @@ function setState(estado) {
   document.getElementById('consulta').classList.add('active');
 
   esconderMenuPrincipal();
+
+  // 🔐 REGRA PARA USUÁRIO COMUM
+  const perfil  = localStorage.getItem('siscag_perfil');
+  const usuario = localStorage.getItem('siscag_usuario');
+
+  if (perfil !== 'ADMIN') {
+
+    const nomeInput = document.getElementById('consulta_nome');
+
+    // garante nome correto e travado
+    nomeInput.value = usuario;
+    nomeInput.disabled = true;
+
+    // limpa qualquer resíduo visual anterior
+    limparExtrato();
+
+    // força carregamento do select TIPO no timing correto
+    setTimeout(() => {
+      verificarNome();
+    }, 0);
+  }
+
   return;
 }
+
 
   // ===== CONSULTA GERAL =====
   if (estado === 'geral') {
@@ -1780,7 +1834,6 @@ function iniciarSessao() {
   const app   = document.getElementById('app');
 
   if (!usuario || !perfil) {
-    // 🔒 mostra login
     login.style.display = 'flex';
     app.style.display   = 'none';
     return;
@@ -1790,8 +1843,12 @@ function iniciarSessao() {
   login.style.display = 'none';
   app.style.display   = 'flex';
 
+  // 🔄 RESET VISUAL COMPLETO (fundamental)
+  restaurarMenus();
+
   if (perfil !== 'ADMIN') {
     bloquearCadastro();
+    bloquearGeral(perfil);
   }
 
   setState('home');
@@ -1828,6 +1885,42 @@ function bloquearCadastro() {
     selectTipo.disabled = false;
   }
 }
+
+function bloquearGeral() {
+
+  const perfil = localStorage.getItem('siscag_perfil');
+  if (perfil === 'ADMIN') return;
+
+  // 🔒 botão GERAL no menu principal
+  document.querySelectorAll('.menu button')
+    .forEach(btn => {
+      if (btn.textContent.trim() === 'GERAL') {
+        btn.style.display = 'none';
+      }
+    });
+
+  // 🔒 botão GERAL no submenu de consulta (se existir)
+  const btnConsultaGeral = document.getElementById('btnConsultaGeral');
+  if (btnConsultaGeral) {
+    btnConsultaGeral.style.display = 'none';
+  }
+}
+
+function restaurarMenus() {
+
+  // menu principal
+  document.querySelectorAll('.menu button')
+    .forEach(btn => {
+      btn.style.display = '';
+    });
+
+  // submenu consulta
+  const btnConsultaGeral = document.getElementById('btnConsultaGeral');
+  if (btnConsultaGeral) {
+    btnConsultaGeral.style.display = '';
+  }
+}
+
 
 function sairSistema() {
 
