@@ -1130,8 +1130,7 @@ if (estado === 'consulta') {
   return;
 }
 
-
-  // ===== CONSULTA GERAL =====
+ // ===== CONSULTA GERAL =====
   if (estado === 'geral') {
   limparBotoesConsulta();
   document.getElementById('btnConsultaGeral').classList.add('active-btn');
@@ -1140,10 +1139,11 @@ if (estado === 'consulta') {
   document.getElementById('geral').classList.add('active');
 
   esconderMenuPrincipal();
+  resetarRodapeGeral();
   carregarGeral();
   return;
 }
-
+ 
   // ===== CADASTRO =====
   if (estado === 'cadastro_menu') {
     document.getElementById('submenuCadastro').classList.add('active');
@@ -2292,7 +2292,6 @@ function carregarGeral() {
     alert('Acesso restrito.');
     return;
   }
-
   const loading = document.getElementById('geral-loading');
   const body    = document.getElementById('geral-body');
 
@@ -2300,12 +2299,12 @@ function carregarGeral() {
   if (loading) loading.style.display = 'block';
   if (body) body.innerHTML = '';
 
+  resetarRodapeGeral();
+
   fetch(`${API_URL}?consulta=geral&perfil=${perfil}`)
     .then(r => r.json())
     .then(dados => {
-      if (dados.status === 'erro') {
-        throw new Error(dados.mensagem);
-      }
+      if (dados.status === 'erro') throw new Error(dados.mensagem);
       montarRelatorioGeral(dados);
     })
     .catch(err => {
@@ -2313,7 +2312,6 @@ function carregarGeral() {
       alert('Erro ao carregar relatório geral');
     })
     .finally(() => {
-      // ✅ remove loading sempre
       if (loading) loading.style.display = 'none';
     });
 }
@@ -2372,6 +2370,8 @@ function montarRelatorioGeral(dados) {
 }
 
 function sairGeral() {
+  resetarRodapeGeral();
+  limparGeralCompleto()
   mostrarMenuPrincipal();
   setState('home');
 }
@@ -2379,6 +2379,26 @@ function sairGeral() {
 function limparBotoesConsulta() {
   document.getElementById('btnConsultaNome')?.classList.remove('active-btn');
   document.getElementById('btnConsultaGeral')?.classList.remove('active-btn');
+}
+
+function resetarRodapeGeral() {
+  const diarias = document.getElementById('geral-diarias');
+  const vales   = document.getElementById('geral-vales');
+  const apagar  = document.getElementById('geral-apagar');
+
+  if (diarias) diarias.textContent = 'R$ 0,00';
+  if (vales)   vales.textContent   = 'R$ 0,00';
+  if (apagar)  apagar.textContent  = 'R$ 0,00';
+}
+
+function limparGeralCompleto() {
+  const loading = document.getElementById('geral-loading');
+  const body    = document.getElementById('geral-body');
+
+  if (loading) loading.style.display = 'none';
+  if (body) body.innerHTML = '';
+
+  resetarRodapeGeral();
 }
 
 </script>
