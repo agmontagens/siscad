@@ -1034,6 +1034,8 @@ let dados = {
   registros: []
 };
 
+let nomesJaCadastradosContexto = [];
+
   /* ===== VALES ===== */
   let vales = [];
 
@@ -1391,18 +1393,46 @@ function confirmarFeira(){
     return;
   }
 
+  // 🔍 consulta nomes já cadastrados nesse contexto
+fetch(
+  API_URL +
+  '?consulta=nomes_diaria_contexto' +
+  '&data='  + encodeURIComponent(dados.data) +
+  '&feira=' + encodeURIComponent(dados.feira) +
+  '&local=' + encodeURIComponent(dados.local) +
+  '&qtd='   + encodeURIComponent(dados.qtd)
+)
+.then(r => r.json())
+.then(resp => {
+
+  nomesJaCadastradosContexto = (resp.nomes || [])
+    .map(n => n.toUpperCase());
+
+  if (nomesJaCadastradosContexto.length > 0) {
+    alert(
+      `Atenção:\n` +
+      `Já existem ${nomesJaCadastradosContexto.length} cadastro(s) ` +
+      `nessa feira\n` +
+      `O sistema avisará se houver duplicidade.`
+    );
+  }
+
   setState('cadastro_diaria_registro');
   atualizarResumo();
 
-modoRegistro = true;
-toggleMenuPrincipal(false);
+  modoRegistro = true;
+  toggleMenuPrincipal(false);
+})
+.catch(() => {
+  alert('Erro ao verificar registros anteriores.');
+});
+
 }
 
 
 function addRegistro(){
   const nomeEl  = document.getElementById('nome');
   const grupoEl = document.getElementById('grupo');
-
   const nome  = (nomeEl.value || '').trim();
   const grupo = (grupoEl.value || '').trim();
 
@@ -1411,6 +1441,22 @@ function addRegistro(){
     nomeEl.focus();
     return;
   }
+
+  const nomeUpper = nome.toUpperCase();
+
+// 🔁 duplicidade no HISTÓRICO
+if (nomesJaCadastradosContexto.includes(nomeUpper)) {
+
+  const confirmar = confirm(
+    `Registro em duplicidade\n` +
+    `Deseja cadastrar novamente?`
+  );
+
+  if (!confirmar) {
+    nomeEl.focus();
+    return;
+  }
+}
 
 const valorEl = document.getElementById('valor_diaria');
 
@@ -1462,6 +1508,9 @@ function sairDiaria() {
   if (resumo) resumo.innerHTML = '';
 
   setHoje();
+
+  nomesJaCadastradosContexto = [];
+
 
   // volta para HOME (menu reaparece automaticamente)
   setState('home');
