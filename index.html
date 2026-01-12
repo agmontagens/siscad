@@ -343,6 +343,34 @@ body{
     background .2s ease;
 }
 
+/* OK — discreto */
+.btn-ok-ajudaSolicitacao{
+  padding: 0 18px;              /* largura depende do texto */
+  height: 42px;
+
+  min-width: 90px;              /* tamanho confortável para "OK" */
+  width: fit-content;           /* cresce conforme texto */
+
+  border-radius: 8px;
+  border: none;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  background: rgba(255,255,255,.85);
+  color: #0f172a;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    width .25s ease,
+    padding .25s ease,
+    background .2s ease;
+}
+
+
 /* SAIR — menos alerta */
 .btn-sair-consulta{
   background: rgba(239,68,68,.85);
@@ -511,6 +539,28 @@ body{
   margin-top: 14px;
 }
 
+.field-valor input{
+  max-width: 160px;   /* ajuste aqui */
+}
+
+.acoes-ajuda{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.acoes-ajuda button{
+  height: 42px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 </style>
 </head>
@@ -588,6 +638,12 @@ body{
 <div class="submenu state" id="submenuConsulta">
   <button id="btnConsultaNome"  onclick="setState('consulta')">NOME</button>
   <button id="btnConsultaGeral" onclick="setState('geral')">GERAL</button>
+</div>
+
+<!-- SUBMENU AJUDA -->
+<div class="submenu state" id="submenuAjuda">
+  <button onclick="setState('ajuda_solicitacao')">SOLICITAÇÃO</button>
+  <button onclick="setState('ajuda_mensagem')">MENSAGEM</button>
 </div>
 
   <div class="divider"></div>
@@ -884,6 +940,73 @@ body{
       <p>Mensagens (em construção)</p>
     </div>
 
+    <!-- AJUDA - SOLICITAÇÕES -->
+<div class="state" id="ajuda_solicitacao">
+
+  <div class="field field-valor">
+    <label>VALOR</label>
+    <input type="text"
+    id="ajuda_valor"
+    placeholder="R$ 0,00">
+  </div>
+
+   <div class="field" id="ajuda_nome_wrapper">
+    <label>NOME</label>
+    <input type="text"
+    id="ajuda_nome"
+    placeholder="Digite o nome">
+  </div>
+
+  <div class="field">
+    <label>OBSERVAÇÃO</label>
+    <input
+    id="ajuda_obs"
+    type="text"
+    maxlength="30"
+    placeholder="Máx. 30 caracteres"
+    >
+  </div>
+
+  <div class="acoes-finais">
+ <button 
+  id="btnAjudaSolicitacaoOk"
+  class="btn-ok-ajudaSolicitacao"
+  onclick="enviarSolicitacaoVale(this)">
+  OK
+</button>
+
+
+<button class="btn-sair-consulta" onclick="sairAjudaSolicitacao()">SAIR</button>
+</div>
+ 
+
+</div>
+
+<!-- AJUDA - MENSAGEM -->
+<div class="state" id="ajuda_mensagem">
+
+  <div class="field">
+    <label>MENSAGEM</label>
+    <input type="text"
+    id="ajuda-mensagem"
+    maxlength="55"
+    placeholder="Digite sua mensagem (max. 55 caracteres)">
+  </div>
+
+  <div class="acoes-finais">
+ <button
+  class="btn-ok-ajudaSolcitacao"
+  id="btnEnviarMensagem"
+  onclick="enviarMensagemAjuda(this)">
+  OK
+</button>
+
+
+<button class="btn-sair-consulta" onclick="sairAjudaMensagem()">SAIR</button>
+</div>
+
+</div>
+
   </div>
 </div>
 
@@ -1055,13 +1178,68 @@ function setState(estado) {
   // esconde submenus por padrão
   document.getElementById('submenuCadastro')?.classList.remove('active');
   document.getElementById('submenuConsulta')?.classList.remove('active');
-
+  document.getElementById('submenuAjuda')?.classList.remove('active');
+  
   // ===== MENU CONSULTA =====
   if (estado === 'consulta_menu') {
   limparBotoesConsulta();
   document.getElementById('submenuConsulta').classList.add('active');
   document.getElementById('home').classList.add('active');
   mostrarMenuPrincipal();
+  return;
+}
+
+if (estado === 'mensagem') {
+  document.getElementById('submenuAjuda').classList.add('active');
+  document.getElementById('home').classList.add('active');
+  mostrarMenuPrincipal();
+  return;
+}
+
+// ===== AJUDA - SOLICITAÇÃO =====
+if (estado === 'ajuda_solicitacao') {
+
+  const perfil  = localStorage.getItem('siscag_perfil');
+  const usuario = localStorage.getItem('siscag_usuario');
+
+  const wrapperNome = document.getElementById('ajuda_nome_wrapper');
+  const inputNome   = document.getElementById('ajuda_nome');
+
+  if (perfil === 'ADMIN') {
+    // ADMIN vê e digita
+    if (wrapperNome) wrapperNome.style.display = 'block';
+    if (inputNome) {
+      inputNome.disabled = false;
+      inputNome.value = '';
+    }
+  } else {
+    // USUÁRIO COMUM
+    if (wrapperNome) wrapperNome.style.display = 'none';
+    if (inputNome) {
+      inputNome.value = usuario; // nome automático
+      inputNome.disabled = true;
+    }
+  }
+
+  document.getElementById('ajuda_solicitacao').classList.add('active');
+  esconderMenuPrincipal();
+  
+  const btn = document.getElementById('btnAjudaSolicitacaoOk');
+  resetBotao(btn);
+
+  return;
+}
+
+
+// ===== CADASTRO AJUDA MENSAGEM =====/
+if (estado === 'ajuda_mensagem') {
+  document.getElementById('ajuda_mensagem').classList.add('active');
+
+  esconderMenuPrincipal();
+
+  const btn = document.getElementById('btnEnviarMensagem');
+resetBotao(btn);
+
   return;
 }
 
@@ -2035,19 +2213,6 @@ if(nomeEl && grupoEl){
     }
   });
 
-  function setBotaoLoading(btn, texto) {
-  btn.dataset.originalText = btn.textContent;
-  btn.textContent = texto || 'Enviando...';
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
-}
-
-function resetBotao(btn) {
-  btn.textContent = btn.dataset.originalText || 'CONFIRMAR';
-  btn.disabled = false;
-  btn.style.opacity = '1';
-}
-
 }
 
 function setHojeDespesa(){
@@ -2159,7 +2324,9 @@ function sairDespesa(){
   const inputValeValor = document.getElementById('vale_valor');
   const inputValorDiaria = document.getElementById('valor_diaria');
   const valeDataInput = document.getElementById('vale_data');
-
+  const inputAjudaValor = document.getElementById('ajuda_valor');
+  
+aplicarMascaraMoeda(inputAjudaValor);
 aplicarMascaraValor(inputValeValor);
 aplicarMascaraValor(inputValorDiaria);
 aplicarMascaraValor(inputDespesaValor);
@@ -2399,6 +2566,252 @@ function limparGeralCompleto() {
   if (body) body.innerHTML = '';
 
   resetarRodapeGeral();
+}
+
+function aplicarMascaraMoeda(input){
+  if (!input) return;
+
+  input.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '');
+
+    if (!v) {
+      e.target.value = '';
+      return;
+    }
+
+    v = Number(v) / 100;
+    e.target.value = formatarMoedaBR(v);
+  });
+}
+
+function sairAjudaSolicitacao(semConfirmar = false){
+
+  const valor = document.getElementById('ajuda_valor');
+  const obs   = document.getElementById('ajuda_obs');
+  const nome  = document.getElementById('ajuda_nome');
+
+  const perfil = localStorage.getItem('siscag_perfil');
+
+  const valorPreenchido = valor && valor.value.trim() !== '';
+  const obsPreenchida   = obs   && obs.value.trim()   !== '';
+
+  const nomeContaComoPendencia =
+    perfil === 'ADMIN' &&
+    nome &&
+    nome.value.trim() !== '' &&
+    nome.disabled === false;
+
+  const temDados = valorPreenchido || obsPreenchida || nomeContaComoPendencia;
+
+  if (!semConfirmar && temDados) {
+    const confirmar = confirm('Deseja sair? Os dados não salvos serão perdidos.');
+    if (!confirmar) return;
+  }
+
+  // limpa campos
+  if (valor) valor.value = '';
+  if (obs)   obs.value   = '';
+  if (nome)  nome.value  = '';
+
+  setState('home');
+  mostrarMenuPrincipal();
+}
+
+
+
+function sairAjudaMensagem() {
+
+  const campo = document.getElementById('ajuda-mensagem');
+
+  const temDados = campo && campo.value.trim() !== '';
+
+  if (temDados) {
+    const confirmar = confirm('Deseja sair? Os dados não salvos serão perdidos.');
+    if (!confirmar) return;
+  }
+
+  if (campo) campo.value = '';
+
+  setState('home');
+  mostrarMenuPrincipal();
+}
+
+async function enviarSolicitacao() {
+
+  const valor = document.getElementById('ajuda_valor').value.trim();
+  const obs   = document.getElementById('ajuda_obs').value.trim();
+  const nome  = document.getElementById('ajuda_nome')?.value.trim();
+
+  if (!valor) {
+    alert('Informe o VALOR.');
+    return;
+  }
+
+  const payload = {
+    tipo: 'vale_solicitacao',
+    valor: valor,
+    observacao: obs || '',
+    nome: nome || '',
+    usuario: localStorage.getItem('siscag_usuario'),
+    perfil: localStorage.getItem('siscag_perfil')
+  };
+
+  try {
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if (json.status !== 'ok') {
+      throw new Error(json.mensagem || 'Erro ao enviar solicitação');
+    }
+
+    alert('Sua solicitação foi registrada e em breve será respondida.');
+
+    sairAjudaSolicitacao(); // limpa + volta home
+
+  } catch (err) {
+    alert('Erro ao enviar solicitação:\n' + err.message);
+  }
+}
+
+async function enviarSolicitacaoVale(btn) {
+
+  const valor = document.getElementById('ajuda_valor')?.value.trim();
+  const obs   = document.getElementById('ajuda_obs')?.value.trim();
+  const nome  = document.getElementById('ajuda_nome')?.value.trim();
+
+  if (!valor) {
+    alert('Informe o VALOR.');
+    return;
+  }
+
+  setBotaoLoading(btn, 'Enviando...');
+
+  const payload = {
+    tipo: 'vale_solicitacao',
+    valor,
+    observacao: obs || '',
+    nome: nome || '',
+    usuario: localStorage.getItem('siscag_usuario'),
+    perfil: localStorage.getItem('siscag_perfil')
+  };
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if (json.status !== 'ok') {
+      throw new Error(json.mensagem || 'Erro ao enviar solicitação');
+    }
+
+    alert('Sua solicitação foi registrada e em breve será respondida.');
+
+    // sai sem confirmação porque acabou de enviar
+    sairAjudaSolicitacao(true);
+
+  } catch (err) {
+    alert('Erro ao enviar solicitação:\n' + err.message);
+  } finally {
+    // SEMPRE volta o botão ao normal (mesmo se você mudar de tela)
+    resetBotao(btn);
+  }
+}
+
+
+async function enviarMensagemAjuda(btn) {
+
+  const input = document.getElementById('ajuda-mensagem');
+  const mensagem = input.value.trim();
+
+  if (!mensagem) {
+    alert('Digite uma mensagem.');
+    return;
+  }
+
+  setBotaoLoading(btn, 'Enviando...');
+
+  const payload = {
+    tipo: 'mensagem',
+    mensagem: mensagem,
+    enviadoPor: localStorage.getItem('siscag_usuario'),
+    perfil: localStorage.getItem('siscag_perfil')
+  };
+
+  try {
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if (json.status !== 'ok') {
+      throw new Error(json.mensagem || 'Erro ao enviar mensagem');
+    }
+
+    alert('Mensagem enviada. Em breve retornamos.');
+
+    input.value = '';
+    setState('home');
+    mostrarMenuPrincipal();
+
+  } catch (err) {
+    alert('Erro ao enviar mensagem:\n' + err.message);
+  } finally {
+    resetBotao(btn);
+  }
+}
+
+function bloquearBotao(id, texto = 'Carregando...') {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+
+  btn.dataset.textoOriginal = btn.innerText;
+  btn.innerText = texto;
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'not-allowed';
+}
+
+function liberarBotao(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+
+  btn.innerText = btn.dataset.textoOriginal || 'OK';
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.style.cursor = '';
+}
+
+function setBotaoLoading(btn, texto = 'Enviando...') {
+  if (!btn) return;
+
+  if (!btn.dataset.originalText) {
+    btn.dataset.originalText = btn.textContent.trim();
+  }
+
+  btn.textContent = texto;
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btn.style.cursor = 'not-allowed';
+}
+
+function resetBotao(btn) {
+  if (!btn) return;
+
+  btn.textContent = btn.dataset.originalText || 'OK';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = '';
 }
 
 </script>
