@@ -644,6 +644,7 @@ body{
 <div class="submenu state" id="submenuAjuda">
   <button onclick="setState('ajuda_solicitacao')">SOLICITAÇÃO</button>
   <button onclick="setState('ajuda_mensagem')">MENSAGEM</button>
+  <button onclick="setState('notificacoes')">NOTIFICAÇÕES</button>
 </div>
 
   <div class="divider"></div>
@@ -1007,6 +1008,22 @@ body{
 
 </div>
 
+<div class="state" id="notificacoes">
+
+  <div id="notificacoes-loading"
+       style="text-align:center; opacity:.8; margin:16px 0; display:none;">
+    Carregando notificações…
+  </div>
+
+  <div class="resumo" id="lista_notificacoes"></div>
+
+  <div class="acoes-finais">
+    <button class="btn-sair" onclick="sairNotificacoes()">SAIR</button>
+  </div>
+
+</div>
+
+
   </div>
 </div>
 
@@ -1331,6 +1348,15 @@ if (estado === 'consulta') {
     mostrarMenuPrincipal();
     return;
   }
+
+   // ===== NOTIFICAÇÕES =====
+  if (estado === 'notificacoes') {
+  document.getElementById('submenuAjuda').classList.add('active');
+  document.getElementById('notificacoes').classList.add('active');
+  esconderMenuPrincipal();
+  carregarNotificacoes();
+  return;
+}
 
   // ===== PADRÃO =====
   document.getElementById(estado)?.classList.add('active');
@@ -2861,6 +2887,79 @@ function resetBotao(btn) {
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.style.cursor = '';
+}
+
+async function carregarNotificacoes() {
+
+  const lista   = document.getElementById('lista_notificacoes');
+  const loading = document.getElementById('notificacoes-loading');
+
+  const usuario = localStorage.getItem('siscag_usuario');
+  const perfil  = localStorage.getItem('siscag_perfil');
+
+  lista.innerHTML = '';
+  loading.style.display = 'block';
+
+  try {
+
+    const resp = await fetch(
+      API_URL +
+      `?consulta=notificacoes&usuario=${encodeURIComponent(usuario)}&perfil=${perfil}`
+    );
+
+    const dados = await resp.json();
+
+    if (!Array.isArray(dados) || dados.length === 0) {
+      lista.innerHTML = '<p>Nenhuma notificação encontrada.</p>';
+      return;
+    }
+
+lista.innerHTML = dados.map(n => {
+
+  let titulo = '';
+  let corpo  = '';
+
+  // 🔵 VALE
+  if (n.tipo === 'VALE') {
+    titulo = `<strong>${n.nome}</strong> — <strong>${n.valor}</strong>`;
+    corpo  = escapeHtml(n.mensagem || '');
+  }
+
+  // 🟢 MENSAGEM
+  else {
+    titulo = `<strong>${n.usuario}:</strong>`;
+    corpo  = escapeHtml(n.mensagem || '');
+  }
+
+  return `
+    <div style="margin-bottom:14px;">
+      <strong>${n.data}</strong><br>
+      ${titulo}<br>
+      ${corpo ? corpo + '<br>' : ''}
+      <span style="opacity:.8;">SITUAÇÃO: ${n.situacao}</span>
+      ${
+        n.resposta
+          ? `<div style="margin-top:6px;"><em>RESPOSTA:</em><br>${escapeHtml(n.resposta)}</div>`
+          : ''
+      }
+    </div>
+    <div class="divider"></div>
+  `;
+
+}).join('');
+
+
+  } catch (err) {
+    lista.innerHTML = '<p>Erro ao carregar notificações.</p>';
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function sairNotificacoes() {
+  document.getElementById('lista_notificacoes').innerHTML = '';
+  mostrarMenuPrincipal();
+  setState('home');
 }
 
 </script>
