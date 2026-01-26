@@ -561,6 +561,16 @@ body{
   justify-content: center;
 }
 
+.field textarea{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+  resize:none;          /* impede quebrar layout */
+  font-family:inherit;
+  font-size:14px;
+}
+
 
 </style>
 </head>
@@ -976,7 +986,6 @@ body{
   OK
 </button>
 
-
 <button class="btn-sair-consulta" onclick="sairAjudaSolicitacao()">SAIR</button>
 </div>
  
@@ -987,12 +996,14 @@ body{
 <div class="state" id="ajuda_mensagem">
 
   <div class="field">
-    <label>MENSAGEM</label>
-    <input type="text"
+  <label>MENSAGEM</label>
+  <textarea
     id="ajuda-mensagem"
-    maxlength="55"
-    placeholder="Digite sua mensagem (max. 55 caracteres)">
-  </div>
+    maxlength="100"
+    placeholder="Digite sua mensagem (máx. 100 caracteres)"
+    rows="2"
+  ></textarea>
+</div>
 
   <div class="acoes-finais">
  <button
@@ -1956,7 +1967,19 @@ const lista = dados.filter(l => {
     document.getElementById('ext_qtd').textContent   = qtd;
     document.getElementById('ext_total').textContent = formatMoeda(total);
     document.getElementById('ext_vale').textContent  = formatMoeda(vale);
-    document.getElementById('ext_saldo').textContent = formatMoeda(total - vale);
+
+    const saldo = total - vale;
+    const elSaldo = document.getElementById('ext_saldo');
+
+    elSaldo.textContent = formatMoeda(saldo);
+
+// cor condicional
+if (saldo < 0) {
+  elSaldo.style.color = '#ef4444'; // vermelho
+} else {
+  elSaldo.style.color = '#ffffff'; // cor padrão
+}
+
 
   } catch(err){
     alert('Erro ao consultar extrato.');
