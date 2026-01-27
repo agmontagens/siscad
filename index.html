@@ -1083,6 +1083,53 @@ dataInput.addEventListener('input', function(e){
   }
 });
 
+async function confirmarVales(btn){
+  if(vales.length === 0){
+    alert('Nenhum VALE lançado.');
+    return;
+  }
+
+  setBotaoLoading(btn, 'Enviando...');
+
+  const payload = {
+  tipo: 'vale',
+  enviadoPor: localStorage.getItem('siscag_usuario'),
+  perfil: localStorage.getItem('siscag_perfil'),
+
+  vales: vales
+};
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const json = await resp.json();
+
+    if(json.status !== 'ok'){
+      throw new Error(json.mensagem || 'Erro desconhecido');
+    }
+
+    alert('Vales lançados com sucesso.');
+
+    // limpa dados
+    vales = [];
+    document.getElementById('resumo_vale').innerHTML = '';
+    document.getElementById('vale_nome').value  = '';
+    document.getElementById('vale_valor').value = '';
+    document.getElementById('vale_caixa').value = '';
+
+    mostrarMenuPrincipal();
+    setState('home');
+
+  } catch(err){
+    alert('Erro ao enviar vales:\n' + err.message);
+  } finally {
+    resetBotao(btn);
+  }
+}
+
 async function confirmarTudo(btn){
   if (dados.registros.length === 0){
     alert('Cadastre ao menos uma pessoa.');
