@@ -1613,21 +1613,26 @@ nome.focus();
 
 }
 
-async function confirmarVales(btn){
-  if(vales.length === 0){
-    alert('Nenhum VALE lançado.');
+async function confirmarSolicitacaoVale(btn){
+  const valor = document.getElementById('vale_valor').value;
+  const observacao = document.getElementById('vale_obs').value || '';
+  const nome = document.getElementById('vale_nome')?.value || '';
+
+  if(!valor){
+    alert('Informe o valor do vale.');
     return;
   }
 
   setBotaoLoading(btn, 'Enviando...');
 
   const payload = {
-  tipo: 'vale',
-  enviadoPor: localStorage.getItem('siscag_usuario'),
-  perfil: localStorage.getItem('siscag_perfil'),
-
-  vales: vales
-};
+    acao: 'vale_solicitacao', // 🔥 CHAVE CORRETA
+    usuario: localStorage.getItem('siscag_usuario'),
+    perfil: localStorage.getItem('siscag_perfil'),
+    nome,
+    valor,
+    observacao
+  };
 
   try {
     const resp = await fetch(API_URL, {
@@ -1637,24 +1642,23 @@ async function confirmarVales(btn){
 
     const json = await resp.json();
 
-    if(json.status !== 'ok'){
-      throw new Error(json.mensagem || 'Erro desconhecido');
+    if(!json.ok){
+      throw new Error(json.mensagem || 'Erro ao solicitar vale');
     }
 
-    alert('Vales lançados com sucesso.');
+    alert('Solicitação de vale enviada.');
 
-    // limpa dados
-    vales = [];
-    document.getElementById('resumo_vale').innerHTML = '';
-    document.getElementById('vale_nome').value  = '';
     document.getElementById('vale_valor').value = '';
-    document.getElementById('vale_caixa').value = '';
+    document.getElementById('vale_obs').value = '';
+    if(document.getElementById('vale_nome')){
+      document.getElementById('vale_nome').value = '';
+    }
 
     mostrarMenuPrincipal();
     setState('home');
 
   } catch(err){
-    alert('Erro ao enviar vales:\n' + err.message);
+    alert('Erro ao enviar solicitação:\n' + err.message);
   } finally {
     resetBotao(btn);
   }
@@ -2746,13 +2750,13 @@ async function enviarSolicitacao() {
   }
 
   const payload = {
-    tipo: 'vale_solicitacao',
-    valor: valor,
-    observacao: obs || '',
-    nome: nome || '',
-    usuario: localStorage.getItem('siscag_usuario'),
-    perfil: localStorage.getItem('siscag_perfil')
-  };
+  acao: 'vale_solicitacao',   // 🔥 aqui também
+  valor,
+  observacao: obs || '',
+  nome: nome || '',
+  usuario: localStorage.getItem('siscag_usuario'),
+  perfil: localStorage.getItem('siscag_perfil')
+};
 
   try {
 
@@ -2790,13 +2794,14 @@ async function enviarSolicitacaoVale(btn) {
   setBotaoLoading(btn, 'Enviando...');
 
   const payload = {
-    tipo: 'vale_solicitacao',
-    valor,
-    observacao: obs || '',
-    nome: nome || '',
-    usuario: localStorage.getItem('siscag_usuario'),
-    perfil: localStorage.getItem('siscag_perfil')
-  };
+  acao: 'vale_solicitacao',   // 🔥 CHAVE CORRETA
+  valor,
+  observacao: obs || '',
+  nome: nome || '',
+  usuario: localStorage.getItem('siscag_usuario'),
+  perfil: localStorage.getItem('siscag_perfil')
+};
+
 
   try {
     const resp = await fetch(API_URL, {
@@ -2816,7 +2821,16 @@ async function enviarSolicitacaoVale(btn) {
     sairAjudaSolicitacao(true);
 
   } catch (err) {
+ 
     alert('Erro ao enviar solicitação:\n' + err.message);
+  // 🔒 se for erro de regra (pendência), sai da tela
+  if (
+    err.message &&
+    err.message.toUpperCase().includes('PENDENTE')
+  ) {
+    sairAjudaSolicitacao(true);
+  }
+    
   } finally {
     // SEMPRE volta o botão ao normal (mesmo se você mudar de tela)
     resetBotao(btn);
